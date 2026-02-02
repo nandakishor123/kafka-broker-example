@@ -1,0 +1,65 @@
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-net
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://localhost:9092,OUTSIDE://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "even-numbers, odd-numbers"
+    networks:
+      - kafka-net
+networks:
+  kafka-net:
+    driver: bridge
+
+# #1 Set up kafka and zookeeper
+
+# run docker compose up -d with the file docker-compose.yml with the following configuration
+# '''
+# services:
+#   zookeeper:
+#     image: wurstmeister/zookeeper
+#     container_name: zookeeper
+#     ports:
+#       - "2181:2181"
+#     networks:
+#       - kafka-net
+#   kafka:
+#     image: wurstmeister/kafka
+#     container_name: kafka
+#     ports:
+#       - "9092:9092"
+#     environment:
+#       KAFKA_ADVERTISED_LISTENERS: INSIDE://localhost:9092,OUTSIDE://localhost:9093
+#       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+#       KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9093
+#       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+#       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#       KAFKA_CREATE_TOPICS: "even-numbers, odd-numbers"
+#     networks:
+#       - kafka-net
+# networks:
+#   kafka-net:
+#     driver: bridge
+# '''
+
+# #2 create topic(s) with this command
+# docker-compose exec kafka kafka-topics.sh --create --topic even-numbers --partitions 1 --replication-factor 1 --bootstrap-server localhost:9092
+
+# #3 run the Producer.java and add some data inside kafka topics. You should be able to see values and the topics they are added to.
+
+# #4 run the Consumer.java to read from kafka topics. You should be seeing values and which topics they came from.
+
+# docker-compose exec kafka kafka-console-consumer.sh --topic even-numbers --from-beginning --bootstrap-server kafka:9092
